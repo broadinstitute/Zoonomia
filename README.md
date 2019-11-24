@@ -8,6 +8,6 @@ R script and input files for the diversity analysis in the 200 Mammals announcem
 R script: diversity_analysis.correlation.R
 
 Input files:
-(1) diversity_analysis.input
-(2) diversity_analysis.pantheria.phenotypes
-(3) diversity_analysis.pantheria.phenotype_types
+(1) diversity_analysis.input.txt
+(2) diversity_analysis.pantheria.phenotypes.txt
+(3) diversity_analysis.pantheria.phenotype_types.txt
