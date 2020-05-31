@@ -1,5 +1,5 @@
 # 200Mammals
-Code used in 200 Mammals Project analyses
+Code used in Zoonomia Project analyses
 
 # Diversity analysis (testing for correlations)
 
