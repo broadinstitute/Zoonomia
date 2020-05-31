@@ -6,10 +6,14 @@ file.remove(outfile)
 
 pantheria <- read.delim("diversity_analysis.pantheria.phenotypes.txt",header=T)
 phenos <- read.delim("diversity_analysis.pantheria.phenotype_types.txt",header=T)
-div <- read.delim("diversity_analysis.input.txt",header=T)
+div <- read.delim("diversity_analysis.input.txt",header=T,na.strings=c("","NA"))
+div <- div %>% filter(!is.na(Species)) %>% filter(Type=="Discovar") %>% select(-Type) %>% mutate(Species=as.character(Species))
+pantheria <- pantheria %>% mutate(Species=as.character(Species))
 d <- merge(pantheria,div,by="Species",all=T)
 d <- d[!is.na(d$Species),]
 all <- d
+
+d <- all[all$OK==TRUE&all$IUCN=="Least Concern",]
 
 ### use Anova test for categorical pantheria phenotypes
 cols <- phenos[phenos$type=="categorical",]
@@ -28,10 +32,15 @@ for (col in cols) {
   fit <- aov(soh~val, data=tmp)
   capture.output(summary(fit),file=outfile,append=T)
 }
+d <- all
 d[cols] <- NULL
+
 ### use Linear regression for continuous pantheria phenotypes
 cols <- phenos[phenos$type=="continuous",]
+cols <- unique(cols)
 cols <- as.vector(cols$phenotype)
+d <- all[all$OK==TRUE&all$IUCN=="Least Concern",]
+
 for (col in cols) {
   tmp <- d[c("het","soh",col)]
   colnames(tmp) <- c("het","soh","value")
@@ -127,6 +136,10 @@ tmp$N <- c(1:length(tmp$Species))
 p <- ggplot(tmp,aes(x=N,y=Rhet)) + geom_point(aes(colour=shIUCN,shape=POP),alpha=0.6) +  facet_grid(.~nIUCN, scales = "free_x", space = "free_x")  + scale_shape_manual(values=c(1,2,3,0)) + scale_colour_manual(values=colors) + scale_y_continuous(breaks=c(0,0.002,0.004,0.006,0.008),limits=c(0,0.01)) + theme_bw()
 ggsave(plot=p,filename="diversity_analysis.figure3A.het.pdf",width=10.5,height=6)
 
+means <- tmp %>% group_by(IUCN) %>% filter(IUCN!="Data deficient") %>% summarize(n=n(),median=median(het)) %>% pivot_longer(c(-IUCN,-n)) %>% mutate(xlab=paste(IUCN," N=",n,sep=""))
+p2 <- ggplot(means,aes(x=xlab,y=value)) + geom_point(aes(shape=name)) + scale_colour_manual(values=colors) + scale_shape_manual(values=c("-")) + scale_y_continuous(breaks=c(0,0.002,0.004,0.006,0.008),limits=c(0,0.01)) + theme_bw()
+ggsave(plot=p2,filename="diversity_analysis.figure3A.het.means.pdf",width=10.5,height=6)
+
 
 write(paste("\n##### soh COUNTS: IUCN #####",sep=" "),file=outfile,append=T)
 tmp <- d
@@ -137,6 +150,10 @@ tmp <- tmp[order(tmp$nIUCN,tmp$Rsoh,tmp$shIUCN,tmp$soh),]
 tmp$N <- c(1:length(tmp$Species))
 p <- ggplot(tmp,aes(x=N,y=Rsoh)) + geom_point(aes(colour=shIUCN,shape=POP),alpha=0.6) +  facet_grid(.~nIUCN, scales = "free_x", space = "free_x")  + scale_shape_manual(values=c(1,2,3,0)) + scale_colour_manual(values=colors) + scale_y_continuous(breaks=c(0,0.25,0.5,0.75,1),limits=c(0,1)) + theme_bw()
 ggsave(plot=p,filename="diversity_analysis.figure3B.soh.pdf",width=10.5,height=6)
+
+means <- tmp %>% group_by(IUCN) %>% filter(IUCN!="Data deficient") %>% summarize(n=n(),medianSOH=median(soh)) %>% pivot_longer(c(-IUCN,-n)) %>% mutate(xlab=paste(IUCN," N=",n,sep=""))
+p2 <- ggplot(means,aes(x=xlab,y=value)) + geom_point(aes(shape=name)) + scale_colour_manual(values=colors) + scale_shape_manual(values=c("-")) + scale_y_continuous(breaks=c(0,0.25,0.5,0.75,1),limits=c(0,1)) + theme_bw()
+ggsave(plot=p2,filename="diversity_analysis.figure3B.soh.means.pdf",width=10.5,height=6)
 
 d <- all[all$OK==TRUE,]
 d <- d[!is.na(d$POP),]
