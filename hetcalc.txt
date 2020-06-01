@@ -1,0 +1,8 @@
+###Calculate heterozygosity from gzipped gVCF file
+i=$(ls -1 /seq/vgb/aserres/VCF_calls/gVCF/*.vcf.gz|sed -n -e "${SGE_TASK_ID}{s/\*//;p;q}")
+
+### Filer positions by GQ>20 if heterozygous position, GQ>10 if reference homozygous.  
+zcat $i | awk -v miau="$i" 'NR==FNR{scaf[$1]=1;next}/^#/{next}scaf[$1]==1{next}$1!=chr{a=$2;chr=$1;next}$6>20{het+=1;next}{split($NF,z,":");if(z[3]>10)tot+=$2-a; a=$2}END{print miau,het,tot}' OFS="\t" /seq/vgb/aserres/VCF_calls/discard/$(basename $i .vcf.gz)".txt" - >> /home/unix/aserres/realhets_full3.txt
+
+### Same as above but within 50 kb windows of callable sequence
+zcat $i|awk 'NR==FNR{dis[$1]=1}/^##contig/{le[substr($0,index($0,"ID=")+3,index($0,",le")-index($0,"ID=")-3)]=substr($0,index($0,"ngth=")+5,index($0,">")-index($0,"ngth=")-5); next}/^#/{next}int(le[$1])<10000{next}dis[$1]==1{next}!a[$1]{p[$1]=0;a[$1]=1;jj=0}tot[$1"_"p[$1]]>=50000{p[$1]+=1}$6>20{het[$1"_"p[$1]]+=1;next}{split($NF,z,":");if(z[3]>10)tot[$1"_"p[$1]]+=$2-jj; jj=$2}END{for (i in tot)if(het[i]){print i,tot[i],het[i]}else{print i,tot[i],0}}'  /seq/vgb/aserres/VCF_calls/discard/$(basename $i .vcf.gz)".txt" -|sort -k1,1V > /seq/vgb/aserres/VCF_calls/50kb_scaffolds_het/$(basename $i .vcf.gz)".txt"

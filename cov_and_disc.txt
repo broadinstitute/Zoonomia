@@ -1,0 +1,15 @@
+#### Pinpoint discardable scaffolds for heterozygosity calculations, bam files needed
+source /broad/software/scripts/useuse
+
+reuse Samtools
+
+i=$(ls -1 /seq/vgb/aserres/VCF_calls/mapped/*.bam|sed -n -e "${SGE_TASK_ID}{s/\*//;p;q}")
+
+### calculate average coverage per scaffold
+samtools depth ${i}|awk '$3<100{a[$1]+=$3;b[$1]+=1}END{for (i in a)print i"\t"a[i]/b[i]}' > /seq/vgb/aserres/VCF_calls/coverages/$(basename ${i})".txt"
+
+j=$(awk '$2<100 && $2>8{i+=$2;e+=1}END{print i/e}' /seq/vgb/aserres/VCF_calls/coverages/$(basename ${i})".txt")
+echo $j
+
+###Discard scaffolds with twice or half the average read depth 
+awk -v co="${j}" '$2<=co/2-3 || $2>=co*2+3' /seq/vgb/aserres/VCF_calls/coverages/$(basename ${i})".txt" > /seq/vgb/aserres/VCF_calls/discard/$(basename ${i} .bam)".txt"
