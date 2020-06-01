@@ -11,3 +11,22 @@ Input files:
 (1) diversity_analysis.input.txt
 (2) diversity_analysis.pantheria.phenotypes.txt
 (3) diversity_analysis.pantheria.phenotype_types.txt
+
+# Pipeline for calculating segments of heterozygosity from a mapped .bam file
+# Scripts adapted to run on an SGE/bash environment
+# paths are hardcoded in the scripts, matching directories need to be created 
+
+1. Create a table of coverages per scaffold and discard anoumalous scaffolds:
+
+qsub cov_and_disc.txt
+
+2. Calculate average heterozygosity and windowed heterozygosity per sample
+
+qsub hetcalc.txt
+
+3. Calculate SoH per sample
+
+for i in `ls -1 ./50kb_scaffolds_het/`; do 
+  cat ${i}|python3 mammals.py > ${i}".soh"; 
+done
+
