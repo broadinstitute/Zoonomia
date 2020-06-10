@@ -12,7 +12,7 @@ Input files:
 (2) diversity_analysis.pantheria.phenotypes.txt
 (3) diversity_analysis.pantheria.phenotype_types.txt
 
-Testing by regression with ordinal predictor for correlation of IUCN conservation status and SoH, heterozyogsity: IUCN.diversity.correlation.R
+Testing by regression with ordinal predictor for correlation of IUCN conservation status and SoH, heterozygosity: IUCN.diversity.correlation.R
 
 # Pipeline for calculating segments of heterozygosity from a mapped .bam file
 # Scripts adapted to run on an SGE/bash environment
